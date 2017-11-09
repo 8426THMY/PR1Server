@@ -3,6 +3,7 @@
 
 #define PLAYER_INFO_BUFFER_SIZE (1 + ULONG_MAX_CHARS + PLAYER_NAME_MAX_LENGTH + FLOAT_MAX_LENGTH + (SHORT_MAX_CHARS * 6) + 1)
 #define CHAT_MAX_MESSAGES 30
+#define CHAT_MESSAGE_MAX_LENGTH 100
 
 
 #include <stdlib.h>
@@ -16,6 +17,9 @@
 
 char *chatMessages[CHAT_MAX_MESSAGES];
 size_t chatMessagesSize = 0;
+
+char *motd;
+size_t motdLength;
 
 
 void gameRespondLogin(socketServer *server, const size_t clientID, player *sender){
@@ -96,9 +100,33 @@ void gameRespondEnterLobby(const socketServer *server, player *sender){
 		}
 	}
 
-	//Send the user the message of the day!
-	//std::string motdData = "^0`&#0;`" + motd + "\n";
-	//serverSendTCP(server, sender->id, motdString, motdStringLength + 1);
+
+	//Send the user the message of the day if it's not empty!
+	if(motdLength > 0){
+		char motdBuffer[8 + CHAT_MESSAGE_MAX_LENGTH + 1];
+		size_t motdBufferLength = 8;
+
+		//We use the "ghost string" as the username to remove the colon that is normally placed after it.
+		memcpy(motdBuffer, "^0`&#0;`", 8);
+		//Add the actual message, as well as a newline and null-terminator.
+		if(motdLength <= CHAT_MESSAGE_MAX_LENGTH){
+			memcpy(&motdBuffer[motdBufferLength], motd, motdLength);
+			motdBufferLength += motdLength;
+			memcpy(&motdBuffer[motdBufferLength], "\n\0", 2);
+			++motdBufferLength;
+
+		//If the message is too big, we'll just truncate it.
+		}else{
+			memcpy(&motdBuffer[motdBufferLength], motd, CHAT_MESSAGE_MAX_LENGTH);
+			motdBufferLength += CHAT_MESSAGE_MAX_LENGTH;
+			memcpy(&motdBuffer[motdBufferLength], "\n\0", 2);
+			++motdBufferLength;
+		}
+
+		//Send it to the user!
+		serverSendTCP(server, sender->id, motdBuffer, motdBufferLength + 1);
+	}
+
 
 	//Finally, send them the most recent chat messages!
 	for(i = 0; i < chatMessagesSize; ++i){
@@ -109,25 +137,41 @@ void gameRespondEnterLobby(const socketServer *server, player *sender){
 void gameRespondSendChatMessage(const socketServer *server, const player *sender){
 	printf("%s: %s\n", sender->name, &server->buffer[1]);
 
+
 	char senderIDString[ULONG_MAX_CHARS + 1];
-	const size_t senderIDStringLength = ultostr(sender->id, senderIDString);
+	size_t senderIDStringLength = ultostr(sender->id, senderIDString);
 
 	//Format the message!
-	const size_t messageLength = sender->id + 1 + sender->nameLength + 1 + (server->bufferLength - 1);
-	char *message = malloc(messageLength + 1);
+	char *message;
+	size_t messageLength = 1 + senderIDStringLength + 1 + sender->nameLength + 1;
+	//Allocate memory for the message and add what the user is actually saying.
+	if(server->bufferLength - 2 <= CHAT_MESSAGE_MAX_LENGTH){
+		message = malloc(messageLength + (server->bufferLength - 2) + 1);
+		memcpy(&message[messageLength], &server->buffer[1], server->bufferLength - 2);
+		messageLength += server->bufferLength - 2;
+		message[messageLength] = '\0';
+
+	//If the message is too big, we'll just truncate it.
+	}else{
+		message = malloc(messageLength + CHAT_MESSAGE_MAX_LENGTH + 1);
+		memcpy(&message[messageLength], &server->buffer[1], CHAT_MESSAGE_MAX_LENGTH);
+		messageLength += CHAT_MESSAGE_MAX_LENGTH;
+		message[messageLength] = '\0';
+	}
+	//Add the sender's I.D. to the message.
 	message[0] = '^';
-	memcpy(message + 1, senderIDString, senderIDStringLength);
 	message[1 + senderIDStringLength] = '`';
-	memcpy(message + 1 + senderIDStringLength + 1, sender->name, sender->nameLength);
+	//Add the sender's username to the message.
+	memcpy(&message[1 + senderIDStringLength + 1], sender->name, sender->nameLength);
 	message[1 + senderIDStringLength + 1 + sender->nameLength] = '`';
-	strcpy(message + (messageLength - (server->bufferLength - 2)), &server->buffer[1]);
-	message[messageLength] = '\0';
+
 
 	size_t i;
 	//Send it to everyone!
 	for(i = 0; i < playerList.size; ++i){
 		serverSendTCP(server, ((player *)vectorGet(&playerList, i))->id, message, messageLength + 1);
 	}
+
 
 	//We don't want to keep too many messages.
 	if(chatMessagesSize >= CHAT_MAX_MESSAGES){

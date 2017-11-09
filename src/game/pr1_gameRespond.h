@@ -20,4 +20,9 @@ void gameRespondFinishRace(const socketServer *server, const player *sender);
 void gameRespondDomainPolicy(const socketServer *server, const size_t clientID);
 
 
+//When this is updated to use the new server base, these global variables won't be necessary.
+extern char *motd;
+extern size_t motdLength;
+
+
 #endif

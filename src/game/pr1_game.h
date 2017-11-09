@@ -5,8 +5,9 @@
 #include "../server/socketServer.h"
 
 
-void gameInit();
 unsigned char gameLoadServer(socketServer *server, const int type, const int protocol);
+
+void gameInit();
 void gameClose();
 
 

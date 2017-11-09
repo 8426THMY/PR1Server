@@ -1,6 +1,9 @@
 #include "pr1_util.h"
 
 
+#define FILE_BUFFER_LENGTH 1024
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -80,10 +83,10 @@ size_t getTokenLength(const char *str, const size_t strLength, const char *delim
 	return(strLength);
 }
 
-void loadConfig(char *configPath, char **ip, size_t *ipLength, unsigned short *port, size_t *bufferSize){
+void loadServerConfig(char *configPath, char **ip, size_t *ipLength, unsigned short *port, size_t *bufferSize){
 	FILE *configFile = fopen(configPath, "rb");
 	if(configFile != NULL){
-		char lineBuffer[1024];
+		char lineBuffer[FILE_BUFFER_LENGTH];
 		char *line;
 		size_t lineLength;
 
@@ -119,7 +122,33 @@ void loadConfig(char *configPath, char **ip, size_t *ipLength, unsigned short *p
 			}
 		}
 	}else{
-		printf("Unable to open config file!\n"
+		printf("Unable to open server config file!\n"
+		       "Path: %s\n\n", configPath);
+	}
+	fclose(configFile);
+}
+
+void loadGameConfig(char *configPath, char **motd, size_t *motdLength){
+	FILE *configFile = fopen(configPath, "rb");
+	if(configFile != NULL){
+		char lineBuffer[FILE_BUFFER_LENGTH];
+		char *line;
+		size_t lineLength;
+
+
+		while((line = readLineFile(configFile, lineBuffer, &lineLength)) != NULL){
+			//Set the I.P.
+			if(strncmp(line, "motd = ", 7) == 0){
+				*motdLength = lineLength - 7;
+				*motd = realloc(*motd, (*motdLength + 1) * sizeof(**motd));
+				if(*motd != NULL){
+					memcpy(*motd, line + 7, *motdLength * sizeof(**motd));
+					(*motd)[*motdLength] = '\0';
+				}
+			}
+		}
+	}else{
+		printf("Unable to open game config file!\n"
 		       "Path: %s\n\n", configPath);
 	}
 	fclose(configFile);
@@ -127,7 +156,7 @@ void loadConfig(char *configPath, char **ip, size_t *ipLength, unsigned short *p
 
 
 static char *readLineFile(FILE *file, char *line, size_t *lineLength){
-	line = fgets(line, 1024, file);
+	line = fgets(line, FILE_BUFFER_LENGTH, file);
 	if(line != NULL){
 		*lineLength = strlen(line);
 

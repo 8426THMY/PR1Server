@@ -41,6 +41,7 @@ size_t playerFindID(const size_t clientID);
 void playerRemove(player *p);
 
 
+//When this is updated to use the new server base, these global variables won't be necessary.
 extern vector playerList;
 
 

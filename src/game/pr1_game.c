@@ -18,22 +18,12 @@ static void gameBuffer(socketServer *server, const size_t clientID);
 static void gameDisconnect(socketServer *server, const size_t clientID);
 
 
-void gameInit(){
-	size_t i;
-	for(i = 0; i < RACE_NUM_MAPS; ++i){
-		raceInit(&raceList[i]);
-	}
-
-	vectorInit(&currentRaces, sizeof(raceInstance));
-	vectorInit(&playerList, sizeof(player));
-}
-
 unsigned char gameLoadServer(socketServer *server, const int type, const int protocol){
 	char *ip = NULL;
 	size_t ipLength = 0;
 	unsigned short port = DEFAULT_PORT;
 	size_t bufferSize = DEFAULT_BUFFER_SIZE;
-	loadConfig("./config/gameServer.cfg", &ip, &ipLength, &port, &bufferSize);
+	loadServerConfig("./config/server.cfg", &ip, &ipLength, &port, &bufferSize);
 
 	const unsigned char success = serverInit(server, type, protocol, ip, ipLength, port, bufferSize, &gameBuffer, &gameDisconnect);
 
@@ -41,9 +31,24 @@ unsigned char gameLoadServer(socketServer *server, const int type, const int pro
 	return(success);
 }
 
-void gameClose(){
-	vectorClear(&currentRaces);
 
+void gameInit(){
+	motd = NULL;
+	motdLength = 0;
+	loadGameConfig("./config/game.cfg", &motd, &motdLength);
+
+	size_t i;
+	for(i = 0; i < RACE_NUM_MAPS; ++i){
+		raceInit(&raceList[i]);
+	}
+	vectorInit(&currentRaces, sizeof(raceInstance));
+	vectorInit(&playerList, sizeof(player));
+}
+
+void gameClose(){
+	free(motd);
+
+	vectorClear(&currentRaces);
 	size_t i;
 	for(i = 0; i < playerList.size; ++i){
 		playerRemove((player *)vectorGet(&playerList, i));

@@ -15,7 +15,8 @@
 
 size_t ultostr(unsigned long num, char *str);
 size_t getTokenLength(const char *str, const size_t strLength, const char *delims);
-void loadConfig(char *configPath, char **ip, size_t *ipLength, unsigned short *port, size_t *bufferSize);
+void loadServerConfig(char *configPath, char **ip, size_t *ipLength, unsigned short *port, size_t *bufferSize);
+void loadGameConfig(char *configPath, char **motd, size_t *motdLength);
 
 
 #endif

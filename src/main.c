@@ -14,13 +14,13 @@ int main(int argc, char *argv[]){
 		if(gameLoadServer(&gameServer, SOCK_STREAM, IPPROTO_TCP)){
 			gameInit();
 
-			unsigned char running = 1;
+			char running = 1;
 			while(running){
 				running = serverListenTCP(&gameServer);
 			}
 
-			gameClose();
 			serverCloseTCP(&gameServer);
+			gameClose();
 		}
     }
     serverCleanup();

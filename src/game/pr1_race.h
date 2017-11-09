@@ -42,6 +42,7 @@ unsigned char raceIsReady(const race *r);
 unsigned char raceInstEmpty(raceInstance *rInst);
 
 
+//When this is updated to use the new server base, these global variables won't be necessary.
 extern race raceList[RACE_NUM_MAPS];
 extern vector currentRaces;
 
