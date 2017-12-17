@@ -155,38 +155,31 @@ void loadGameConfig(char *configPath, char **motd, size_t *motdLength){
 }
 
 
+//Read a line from a file, removing any unwanted stuff!
 static char *readLineFile(FILE *file, char *line, size_t *lineLength){
-	line = fgets(line, FILE_BUFFER_LENGTH, file);
+	line = fgets(line, 1024, file);
 	if(line != NULL){
 		*lineLength = strlen(line);
 
 		//Remove comments.
-		char *commentPos = strstr(line, "//");
-		if(commentPos != NULL){
-			*lineLength -= commentPos - line;
-			*commentPos = '\0';
-		}
-
-		//"Remove" whitespace characters from the end of the line!
-		size_t i;
-		for(i = 0; i < *lineLength; ++i){
-			if(!isspace(line[i])){
-				line += i;
-				*lineLength -= i;
-
-				break;
-			}
+		char *tempPos = strstr(line, "//");
+		if(tempPos != NULL){
+			*lineLength -= *lineLength - (tempPos - line);
 		}
 
 		//"Remove" whitespace characters from the beginning of the line!
-		for(i = *lineLength; i > 0; --i){
-			if(!isspace(line[i - 1])){
-				line[i] = '\0';
-				*lineLength = i;
-
-				break;
-			}
+		tempPos = &line[*lineLength];
+		while(line < tempPos && isspace(*line)){
+			++line;
 		}
+		*lineLength = tempPos - line;
+
+		//"Remove" whitespace characters from the end of the line!
+		while(*lineLength > 0 && isspace(line[*lineLength - 1])){
+			--*lineLength;
+		}
+
+		line[*lineLength] = '\0';
 	}
 
 
