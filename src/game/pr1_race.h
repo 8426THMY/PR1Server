@@ -8,7 +8,7 @@
 
 #include <string.h>
 
-#include "../vector.h"
+#include "../shared/vector.h"
 
 
 //For each race, store the I.D. and state of the clients in each slot.

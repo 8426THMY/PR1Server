@@ -59,7 +59,7 @@ unsigned char playerValidateInfo(player *p){
 		size_t idStringLength = ultostr(p->id, idString);
 
 		p->nameLength = 8 + idStringLength;
-		realloc(p->name, 8 + idStringLength + 1);
+		p->name = realloc(p->name, 8 + idStringLength + 1);
 		memcpy(p->name, "Player #", 8);
 		memcpy(p->name + 8, idString, idStringLength);
 		p->name[p->nameLength] = '\0';
@@ -70,7 +70,7 @@ unsigned char playerValidateInfo(player *p){
 		size_t idStringLength = ultostr(p->id, idString);
 
 		p->nameLength = 7 + idStringLength;
-		realloc(p->name, 7 + idStringLength + 1);
+		p->name = realloc(p->name, 7 + idStringLength + 1);
 		memcpy(p->name, "Ghost #", 7);
 		memcpy(p->name + 7, idString, idStringLength);
 		p->name[p->nameLength] = '\0';

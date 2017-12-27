@@ -41,7 +41,7 @@ void raceInstInit(raceInstance *rInst){
 
 //Let a player join a race slot.
 unsigned char raceJoinSlot(race *r, const size_t slot, const size_t clientID){
-	if(slot >= 0 && slot < RACE_NUM_SLOTS && r->slotID[slot] == 0){
+	if(slot < RACE_NUM_SLOTS && r->slotID[slot] == 0){
 		r->slotID[slot] = clientID;
 
 		return(1);
@@ -52,7 +52,7 @@ unsigned char raceJoinSlot(race *r, const size_t slot, const size_t clientID){
 
 //Remove a player from a race slot.
 unsigned char raceLeaveSlot(race *r, const size_t slot, const size_t clientID){
-	if(slot >= 0 && slot < RACE_NUM_SLOTS && r->slotID[slot] == clientID){
+	if(slot < RACE_NUM_SLOTS && r->slotID[slot] == clientID){
 		r->slotID[slot] = 0;
 		r->slotState[slot] = 0;
 
@@ -64,7 +64,7 @@ unsigned char raceLeaveSlot(race *r, const size_t slot, const size_t clientID){
 
 //Ready up a player.
 unsigned char raceReadyUp(race *r, const size_t slot, const size_t clientID){
-	if(slot >= 0 && slot < RACE_NUM_SLOTS && r->slotID[slot] == clientID){
+	if(slot < RACE_NUM_SLOTS && r->slotID[slot] == clientID){
 		r->slotState[slot] = 1;
 
 		return(1);
@@ -76,7 +76,7 @@ unsigned char raceReadyUp(race *r, const size_t slot, const size_t clientID){
 
 //Add a player to a race.
 unsigned char raceInstAddPlayer(raceInstance *rInst, const size_t slot, const size_t clientID){
-	if(slot >= 0 && slot < RACE_NUM_SLOTS && rInst->playerIDs[slot] == 0){
+	if(slot < RACE_NUM_SLOTS && rInst->playerIDs[slot] == 0){
 		rInst->playerIDs[slot] = clientID;
 		++rInst->totalPlayers;
 
@@ -88,7 +88,7 @@ unsigned char raceInstAddPlayer(raceInstance *rInst, const size_t slot, const si
 
 //Remove a player from a race.
 unsigned char raceInstRemovePlayer(raceInstance *rInst, const size_t slot, const size_t clientID){
-	if(slot >= 0 && slot < RACE_NUM_SLOTS && rInst->playerIDs[slot] == clientID){
+	if(slot < RACE_NUM_SLOTS && rInst->playerIDs[slot] == clientID){
 		rInst->playerIDs[slot] = 0;
 
 		return(1);

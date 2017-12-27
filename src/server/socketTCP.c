@@ -10,7 +10,7 @@
 unsigned char serverListenTCP(socketServer *server){
 	//Check if the any of the sockets have changed state.
 	int changedSockets = pollFunc(server->connectionHandler.fds, server->connectionHandler.size, SERVER_POLL_TIMEOUT);
-	if(changedSockets != SOCKET_ERROR){
+	if(changedSockets > 0){
 		//If the master socket has returned with POLLIN, we're ready to accept a new connection!
 		if(server->connectionHandler.fds[0].revents & POLLIN){
 			//Store information pertaining to whoever sent the data!
@@ -40,7 +40,7 @@ unsigned char serverListenTCP(socketServer *server){
 
 		size_t i;
 		//Now check if the other sockets have changed!
-		for(i = 0; changedSockets > 0 && i < server->connectionHandler.size; ++i){
+		for(i = 1; changedSockets > 0 && i < server->connectionHandler.size; ++i){
 			//If the client has timed out, disconnect them!
 			#warning "TCP timeout isn't implemented yet!"
 			if(0){
@@ -106,7 +106,7 @@ unsigned char serverListenTCP(socketServer *server){
 				--changedSockets;
 			}
 		}
-	}else{
+	}else if(changedSockets == SOCKET_ERROR){
 		serverError(SERVER_POLL_FUNC, lastErrorID);
 
 		return(0);

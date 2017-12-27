@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 
-#include "../vector.h"
+#include "../shared/vector.h"
 
 
 typedef struct player {

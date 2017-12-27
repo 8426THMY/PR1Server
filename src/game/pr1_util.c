@@ -30,14 +30,6 @@ size_t ultostr(unsigned long num, char *str){
 	size_t length = 0;
 	char *curPos = str;
 
-	//Check for a minus sign.
-	if(num < 0){
-		*curPos = '-';
-		num = -num;
-	}else{
-		*curPos = '\0';
-	}
-
 	//Add the digits backwards, starting at the end of the array.
 	curPos += 10;
 	while(num > 0){
