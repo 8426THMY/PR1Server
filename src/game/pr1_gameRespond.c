@@ -29,7 +29,7 @@ void gameRespondLogin(socketServer *server, const size_t clientID, player *sende
 		playerInit(&tempPlayer);
 
 		playerUpdateInfo(&tempPlayer, server->buffer, clientID);
-		vectorAdd(&playerList, &tempPlayer);
+		vectorAdd(&playerList, &tempPlayer, 1);
 
 		sender = (player *)vectorGet(&playerList, playerList.size - 1);
 
@@ -325,7 +325,7 @@ void gameRespondStartRace(const socketServer *server, size_t raceNum){
 		raceInstance newRaceInst;
 		raceInstInit(&newRaceInst);
 		newRaceInst.map = raceNum;
-		vectorAdd(&currentRaces, &newRaceInst);
+		vectorAdd(&currentRaces, &newRaceInst, 1);
 
 		newRaceID = currentRaces.size;
 		newRace = (raceInstance *)vectorGet(&currentRaces, newRaceID - 1);
