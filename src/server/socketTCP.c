@@ -29,7 +29,7 @@ unsigned char serverListenTCP(socketServer *server){
 
 				handlerAdd(&server->connectionHandler, &tempFD, &tempInfo);
 			}else{
-				serverError("accept()", lastErrorID);
+				serverPrintError("accept()", serverGetLastError());
 			}
 
 			//Reset the master socket's return events!
@@ -70,7 +70,7 @@ unsigned char serverListenTCP(socketServer *server){
 
 					//There was an error, so disconnect the client!
 					}else{
-						serverError("recv()", lastErrorID);
+						serverPrintError("recv()", serverGetLastError());
 						serverDisconnectTCP(server, server->connectionHandler.info[i].id);
 					}
 				}
@@ -107,7 +107,7 @@ unsigned char serverListenTCP(socketServer *server){
 			}
 		}
 	}else if(changedSockets == SOCKET_ERROR){
-		serverError(SERVER_POLL_FUNC, lastErrorID);
+		serverPrintError(SERVER_POLL_FUNC, serverGetLastError());
 
 		return(0);
 	}
@@ -123,7 +123,7 @@ unsigned char serverSendTCP(const socketServer *server, const size_t clientID, c
 		if(send(server->connectionHandler.fds[server->connectionHandler.idLinks[clientID]].fd, buffer, bufferLength, 0) >= 0){
 			return(1);
 		}else{
-			serverError("send()", lastErrorID);
+			serverPrintError("send()", serverGetLastError());
 		}
 	}else{
 		printf("Error: Tried to send data to an invalid socket.\n");
@@ -139,7 +139,7 @@ void serverDisconnectTCP(socketServer *server, const size_t clientID){
 			(*server->discFunc)(server, clientID);
 		}
 
-		closesocket(server->connectionHandler.fds[server->connectionHandler.idLinks[clientID]].fd);
+		close(server->connectionHandler.fds[server->connectionHandler.idLinks[clientID]].fd);
 		handlerRemove(&server->connectionHandler, clientID);
 	}
 }
@@ -151,7 +151,7 @@ void serverCloseTCP(socketServer *server){
 		--i;
 		serverDisconnectTCP(server, server->connectionHandler.info[i].id);
 	}
-	closesocket(server->connectionHandler.fds[0].fd);
+	close(server->connectionHandler.fds[0].fd);
 	handlerClear(&server->connectionHandler);
 
 	free(server->buffer);

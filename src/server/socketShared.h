@@ -2,6 +2,9 @@
 #define socketShared_h
 
 
+#include <stdio.h>
+#include <errno.h>
+
 #include "../serverSettings.h"
 
 
@@ -32,16 +35,14 @@
     #define DEFAULT_BUFFER_SIZE 1024
 #endif
 
-#include <errno.h>
 
 #ifdef _WIN32
 	#include <winsock2.h>
 	#include <ws2tcpip.h>
 
-	#define lastErrorID WSAGetLastError()
 	#define WS_VERSION MAKEWORD(2, 2)
 
-	#define ioctl ioctlsocket
+	#define close(x) closesocket(x)
 
 	//The socket has hung up.
 	#ifndef POLLHUP
@@ -69,23 +70,24 @@
 	#endif
 
 
-	int inet_pton(int af, const char *src, char *dst);
-
 	struct pollfd {
-		SOCKET fd;
+		int fd;
 		short events;
 		short revents;
 	};
+
+	int inet_pton(int af, const char *src, char *dst);
+	#ifdef SERVER_USE_POLL
+		int WSAAPI WSAPoll(struct pollfd *fdarray, ULONG nfds, int timeout);
+	#endif
 #else
 	#include <sys/socket.h>
 	#include <arpa/inet.h>
 	#include <netdb.h>
 	#include <unistd.h>
 
-	#define lastErrorID errno
 	#define INVALID_SOCKET -1
 	#define SOCKET_ERROR -1
-	#define SOCKET int;
 
 	#ifdef SERVER_USE_POLL
 		#include <sys/poll.h>
@@ -131,8 +133,9 @@
 			#define POLLWRBAND 0x200
 		#endif
 
+
 		struct pollfd {
-			SOCKET fd;
+			int fd;
 			short events;
 			short revents;
 		};
@@ -140,8 +143,11 @@
 #endif
 
 
-void serverError(const char *func, const int code);
+unsigned char setNonBlockMode(const int fd, unsigned long mode);
 int pollFunc(struct pollfd *fdarray, size_t nfds, int timeout);
+
+int serverGetLastError();
+void serverPrintError(const char *func, const int code);
 
 
 #endif

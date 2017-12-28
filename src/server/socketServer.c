@@ -13,19 +13,13 @@ unsigned char serverSetup(){
 	WSADATA wsaData;
 	int wsaError = WSAStartup(WS_VERSION, &wsaData);
 	if(wsaError != 0){
-		serverError("WSAStartup()", lastErrorID);
+		serverPrintError("WSAStartup()", serverGetLastError());
 
 		return(0);
 	}
 	#endif
 
 	return(1);
-}
-
-void serverCleanup(){
-	#ifdef _WIN32
-	WSACleanup();
-	#endif
 }
 
 
@@ -63,7 +57,7 @@ unsigned char serverInit(socketServer *server, const int type, const int protoco
 	struct pollfd masterFD;
 	masterFD.fd = socket(af, type, protocol);
 	if(masterFD.fd == INVALID_SOCKET){
-		serverError("socket()", lastErrorID);
+		serverPrintError("socket()", serverGetLastError());
 
 		return(0);
 	}
@@ -77,8 +71,7 @@ unsigned char serverInit(socketServer *server, const int type, const int protoco
 
 		if(SERVER_POLL_TIMEOUT == 0){
 			//Make sure our polling function is non-blocking.
-			unsigned long argp = 1;
-			ioctl(masterFD.fd, FIONBIO, &argp);
+			setNonBlockMode(masterFD.fd, 1);
 
 			timeoutValue.tv_sec = 0;
 			timeoutValue.tv_usec = 0;
@@ -89,7 +82,7 @@ unsigned char serverInit(socketServer *server, const int type, const int protoco
 
 		//Set the timeout for recvfrom!
 		if(setsockopt(masterFD.fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeoutValue, sizeof(timeoutValue)) != 0){
-			serverError("setsockopt()", lastErrorID);
+			serverPrintError("setsockopt()", serverGetLastError());
 
 			return(0);
 		}
@@ -123,7 +116,7 @@ unsigned char serverInit(socketServer *server, const int type, const int protoco
 	}
 	//Bind our socket to the address!
 	if(bind(masterFD.fd, (struct sockaddr *)&masterInfo.addr, sizeof(struct sockaddr_in)) == SOCKET_ERROR){
-		serverError("bind()", lastErrorID);
+		serverPrintError("bind()", serverGetLastError());
 
 		return(0);
 	}
@@ -131,7 +124,7 @@ unsigned char serverInit(socketServer *server, const int type, const int protoco
 	//Start listening for connections if the socket is using TCP!
 	if(protocol == IPPROTO_TCP){
 		if(listen(masterFD.fd, SOMAXCONN) == SOCKET_ERROR){
-			serverError("listen()", lastErrorID);
+			serverPrintError("listen()", serverGetLastError());
 
 			return(0);
 		}
@@ -168,11 +161,8 @@ unsigned char serverInit(socketServer *server, const int type, const int protoco
 }
 
 
-//Print a socket-related error code!
-void serverError(const char *func, const int code){
-	printf("There was a problem with socket function %s!\n"
-	       "Error: %d\n"
-	       "Please check the link below for more information:\n"
-	       "https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668\n",
-	       func, code);
+void serverCleanup(){
+	#ifdef _WIN32
+	WSACleanup();
+	#endif
 }
