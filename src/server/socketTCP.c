@@ -139,7 +139,7 @@ void serverDisconnectTCP(socketServer *server, const size_t clientID){
 			(*server->discFunc)(server, clientID);
 		}
 
-		close(server->connectionHandler.fds[server->connectionHandler.idLinks[clientID]].fd);
+		socketclose(server->connectionHandler.fds[server->connectionHandler.idLinks[clientID]].fd);
 		handlerRemove(&server->connectionHandler, clientID);
 	}
 }
@@ -151,7 +151,7 @@ void serverCloseTCP(socketServer *server){
 		--i;
 		serverDisconnectTCP(server, server->connectionHandler.info[i].id);
 	}
-	close(server->connectionHandler.fds[0].fd);
+	socketclose(server->connectionHandler.fds[0].fd);
 	handlerClear(&server->connectionHandler);
 
 	free(server->buffer);

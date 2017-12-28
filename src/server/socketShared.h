@@ -42,7 +42,7 @@
 
 	#define WS_VERSION MAKEWORD(2, 2)
 
-	#define close(x) closesocket(x)
+	#define socketclose(x) closesocket(x)
 
 	//The socket has hung up.
 	#ifndef POLLHUP
@@ -88,6 +88,8 @@
 
 	#define INVALID_SOCKET -1
 	#define SOCKET_ERROR -1
+
+	#define socketclose(x) close(x)
 
 	#ifdef SERVER_USE_POLL
 		#include <sys/poll.h>
